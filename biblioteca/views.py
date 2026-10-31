@@ -26,6 +26,11 @@ def emprestar_livro(request, livro_id):
         messages.error(request, f'Não há cópias disponíveis de "{livro.titulo}" no momento.')
         return redirect('lista_livros')
     membro = get_object_or_404(Membro, pk=request.POST.get('membro_id'))
+    # Desafio: no máximo 3 empréstimos ativos por membro.
+    ativos = Emprestimo.objects.filter(membro=membro, status='ATIVO').count()
+    if ativos >= 3:
+        messages.error(request, f'{membro.nome} já tem 3 empréstimos ativos e não pode pegar outro livro.')
+        return redirect('lista_livros')
     # Regra de negócio 2: prazo de 14 dias a partir de hoje.
     Emprestimo.objects.create(
         livro=livro,

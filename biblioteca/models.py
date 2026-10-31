@@ -1,5 +1,9 @@
+from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
+
+MULTA_POR_DIA = Decimal('0.50')
 
 
 class Autor(models.Model):
@@ -50,6 +54,16 @@ class Emprestimo(models.Model):
     @property
     def esta_atrasado(self):
         return self.status == 'ATIVO' and self.data_prevista_devolucao < timezone.localdate()
+
+    @property
+    def dias_atraso(self):
+        # Dias entre o prazo e a devolução (ou hoje, se ainda não devolveu).
+        fim = self.data_devolucao or timezone.localdate()
+        return max((fim - self.data_prevista_devolucao).days, 0)
+
+    @property
+    def multa(self):
+        return self.dias_atraso * MULTA_POR_DIA
 
     def __str__(self):
         return f'{self.membro} -> {self.livro}'

@@ -7,6 +7,7 @@
         <th>Livro</th>
         <th>Devolução prevista</th>
         <th>Situação</th>
+        <th>Multa</th>
         <th>Ação</th>
     </tr>
     {% for emprestimo in emprestimos %}
@@ -23,6 +24,9 @@
             {% endif %}
         </td>
         <td>
+            {% if emprestimo.multa %}R$ {{ emprestimo.multa|floatformat:2 }} ({{ emprestimo.dias_atraso }} dias){% else %}-{% endif %}
+        </td>
+        <td>
             {% if emprestimo.status != 'DEVOLVIDO' %}
             <form method="post" action="{% url 'devolver_livro' emprestimo.id %}">
                 {% csrf_token %}
@@ -32,7 +36,7 @@
         </td>
     </tr>
     {% empty %}
-    <tr><td colspan="4">Este membro ainda não tem empréstimos.</td></tr>
+    <tr><td colspan="5">Este membro ainda não tem empréstimos.</td></tr>
     {% endfor %}
 </table>
 <p><a href="{% url 'lista_livros' %}">&larr; Voltar ao acervo</a></p>

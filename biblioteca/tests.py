@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.db.models import Count
 from django.test import TestCase
@@ -100,3 +101,22 @@ class RegrasDeNegocioTest(TestCase):
         from django.contrib import admin
         for m in (Autor, Livro, Membro):
             self.assertIn(m, admin.site._registry)
+
+    def test_limite_de_3_emprestimos_ativos(self):
+        livro = Livro.objects.create(
+            titulo='Livro Extra', autor=self.autor, isbn='333',
+            copias_totais=5, copias_disponiveis=5)
+        for _ in range(4):
+            self.client.post(
+                reverse('emprestar_livro', args=[livro.id]),
+                {'membro_id': self.membro.id})
+        self.assertEqual(Emprestimo.objects.filter(membro=self.membro).count(), 3)
+        livro.refresh_from_db()
+        self.assertEqual(livro.copias_disponiveis, 2)
+
+    def test_multa_por_atraso(self):
+        emp = Emprestimo.objects.create(
+            livro=self.livro, membro=self.membro,
+            data_prevista_devolucao=timezone.localdate() - timedelta(days=3))
+        self.assertEqual(emp.dias_atraso, 3)
+        self.assertEqual(emp.multa, Decimal('1.50'))
