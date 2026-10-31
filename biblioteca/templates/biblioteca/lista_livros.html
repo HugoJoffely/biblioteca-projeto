@@ -1,0 +1,39 @@
+{% extends 'biblioteca/base.html' %}
+{% block titulo %}Livros | Biblioteca IESB{% endblock %}
+{% block conteudo %}
+<h1>Acervo de Livros</h1>
+<table>
+    <tr>
+        <th>Título</th>
+        <th>Autor</th>
+        <th>Disponíveis</th>
+        <th>Emprestar para</th>
+    </tr>
+    {% for livro in livros %}
+    <tr>
+        <td>{{ livro.titulo }}</td>
+        <td>{{ livro.autor.nome }}</td>
+        <td>{{ livro.copias_disponiveis }} / {{ livro.copias_totais }}</td>
+        <td>
+            <form method="post" action="{% url 'emprestar_livro' livro.id %}">
+                {% csrf_token %}
+                <select name="membro_id" required>
+                    {% for membro in membros %}
+                    <option value="{{ membro.id }}">{{ membro.nome }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Emprestar</button>
+            </form>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">Nenhum livro cadastrado. Use o Admin para cadastrar.</td></tr>
+    {% endfor %}
+</table>
+<h2>Empréstimos por membro</h2>
+<ul>
+    {% for membro in membros %}
+    <li><a href="{% url 'meus_emprestimos' membro.id %}">{{ membro.nome }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
